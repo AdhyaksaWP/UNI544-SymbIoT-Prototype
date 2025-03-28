@@ -6,3 +6,6 @@ runs/
 
 # Ignore dataset folder
 Fire-Dataset-for-YOLOv8-10/
+
+# Ignore dataset folder for training
+datasets/
