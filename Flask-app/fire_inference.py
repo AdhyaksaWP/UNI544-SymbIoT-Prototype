@@ -11,13 +11,13 @@ class Fire_Inference():
         self.__width = 800
         self.__height = 600
         # self.__serial = serial.Serial('/dev/ttyUSB0', baudrate=115200)
-        self.__model = YOLO('../output/yolo_model.pt')
+        self.__model = YOLO('../AI/output/yolo_model.pt')
         self.__yaw_start_angle = 90 
         self.__pitch_start_angle = 150
         self.__cur_yaw = self.__yaw_start_angle
         self.__cur_pitch = self.__pitch_start_angle
 
-        img = cv2.imread('../vision_test/Large_bonfire.jpg')
+        img = cv2.imread('../AI/vision_test/Large_bonfire.jpg')
         self.sample_image = cv2.resize(img, (100, 100))
         self.sample_image_height, self.sample_image_width, _ = self.sample_image.shape
 

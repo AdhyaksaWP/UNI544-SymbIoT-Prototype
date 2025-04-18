@@ -1,7 +1,7 @@
 import re
 import threading
 
-from flask import Flask, Request, jsonify
+from flask import Flask, jsonify, request
 from fire_inference import Fire_Inference
 from llm_invoking import LLM_Invoking
 from mqtt import MQTT
@@ -32,10 +32,11 @@ def vision():
         return jsonify({"error": "Internal Server Error"}), 500
 
 @app.route('/api/llm', methods=['POST'])
-async def llm(req: Request):
+def llm():
     try:
-        body = await req.json()
+        body = request.get_json()
         data = body['input_text']
+        print(data)
 
         rag_state = chatbot.is_rag_needed(data)
 
@@ -49,10 +50,11 @@ async def llm(req: Request):
 
         response = chatbot.chatbot_response(data, rag_state, input_metadata)
         return jsonify({"answer": response}), 200
-    
+
     except Exception as e:
         print(f"Error happened on server side: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
+
 
 mqtt_thread.start()
 camera_thread.start()

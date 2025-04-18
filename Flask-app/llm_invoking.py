@@ -21,7 +21,7 @@ class LLM_Invoking():
         self.__vector_store = Chroma(
             collection_name="bombatronic_collection",
             embedding_function=self.__embeddings,
-            persist_directory="../chroma_db"
+            persist_directory="../AI/chroma_db"
         )
 
     def is_rag_needed(self, input_text):
