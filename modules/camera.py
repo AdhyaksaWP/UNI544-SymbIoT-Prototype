@@ -1,69 +1,59 @@
 import streamlit as st
 import cv2
 import numpy as np
+import urllib.request
+import time
 
 def run():
-    # **1️⃣ Status Kamera & Deteksi Api**
-    col1, col2 = st.columns(2)
+    st.title("Camera Streaming")
 
-    with col1:
-        st.markdown(
-            """
-            <div style="text-align: center; background-color: white; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 10px #ddd;">
-                <h4>Camera Status:</h4>
-                <h3 style="color: green;">On</h3>
-                <img src="https://cdn-icons-png.flaticon.com/512/1042/1042264.png" width="50">
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with col2:
-        st.markdown(
-            """
-            <div style="text-align: center; background-color: white; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 10px #ddd;">
-                <h4>Fire Detected:</h4>
-                <h3 style="color: red;">False</h3>
-                <img src="https://cdn-icons-png.flaticon.com/512/482/482895.png" width="50">
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # **2️⃣ Streaming Kamera**
-    st.markdown("<h3 style='text-align: center;'>Live Camera</h3>", unsafe_allow_html=True)
-
-    # **Gunakan session_state untuk menyimpan status kamera**
+    ip_snapshot_url = st.text_input("IP Camera Snapshot URL", "https://68ae-2404-c0-9aa0-00-2331-24e8.ngrok-free.app/cam-hi.jpg")
     if "camera_active" not in st.session_state:
         st.session_state.camera_active = False
 
-    # **Tombol untuk mengaktifkan kamera**
-    if not st.session_state.camera_active:
-        if st.button("Start Camera", key="start_cam"):
-            st.session_state.camera_active = True
+    # Custom style button agar teksnya putih
+    button_style = """
+        <style>
+        div.stButton > button:first-child {
+            color: white !important;
+            background-color: #2E86C1;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+        }
+        </style>
+    """
+    st.markdown(button_style, unsafe_allow_html=True)
 
-    # **Tombol untuk menghentikan kamera**
-    else:
-        if st.button("Stop Camera", key="stop_cam"):
-            st.session_state.camera_active = False
+    col1, col2, col3 = st.columns([1, 2, 1])  # Tengahin tombol
+    with col2:
+        if not st.session_state.camera_active:
+            if st.button("Start Snapshot Stream"):
+                st.session_state.camera_active = True
+                st.session_state.snapshot_url = ip_snapshot_url
+        else:
+            if st.button("Stop Snapshot Stream"):
+                st.session_state.camera_active = False
 
-    # **Menampilkan stream jika kamera aktif**
+    # Tengahin gambar
     if st.session_state.camera_active:
-        frame_placeholder = st.empty()
-        cap = cv2.VideoCapture(0)
+        outer_col1, outer_col2, outer_col3 = st.columns([1, 2, 1])
+        with outer_col2:
+            img_placeholder = st.empty()
 
-        while st.session_state.camera_active:
-            ret, frame = cap.read()
-            if not ret:
-                st.error("Failed to capture frame.")
-                break
+            while st.session_state.camera_active:
+                try:
+                    resp = urllib.request.urlopen(st.session_state.snapshot_url)
+                    img_array = np.asarray(bytearray(resp.read()), dtype=np.uint8)
+                    frame = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame_placeholder.image(frame, channels="RGB", use_container_width=True)
+                    img_placeholder.image(frame, channels="RGB", width=750)
 
-        cap.release()
+                    time.sleep(0.1)
+                except Exception as e:
+                    st.error(f"Gagal mengambil gambar: {e}")
+                    break
 
 if __name__ == "__main__":
     run()

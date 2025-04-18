@@ -1,8 +1,8 @@
 import streamlit as st
-import google.generativeai as genai
+import requests
 
 def run():
-    st.title("🤖 Chatbot Gemini")
+    st.title("🤖 Chatbot")
 
     # Tambahkan style untuk jawaban chatbot
     st.markdown("""
@@ -22,23 +22,28 @@ def run():
         </style>
     """, unsafe_allow_html=True)
 
-    # Ambil API key
-    GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=GOOGLE_API_KEY)
-
-    # Model Gemini 1.5 Flash
-    model = genai.GenerativeModel(model_name="models/gemini-1.5-flash-latest")
+    # URL endpoint API LLM
+    LLM_API_URL = "https://4c23-140-213-166-26.ngrok-free.app/api/llm"  # Ganti dengan alamat sesuai backend-mu
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    user_input = st.chat_input("Tanyakan sesuatu ke Gemini...")
+    user_input = st.chat_input("Tanyakan sesuatu ke BombaBot...")
 
     if user_input:
         st.session_state.chat_history.append(("user", user_input))
         try:
-            response = model.generate_content(user_input)
-            st.session_state.chat_history.append(("assistant", response.text))
+            response = requests.post(
+                LLM_API_URL,
+                json={"input_text": user_input},
+                timeout=10
+            )
+            if response.status_code == 200:
+                result = response.json()
+                bot_reply = result.get("answer", "Tidak ada jawaban dari server.")
+                st.session_state.chat_history.append(("assistant", bot_reply))
+            else:
+                st.error(f"Gagal mendapatkan respons. Status: {response.status_code}")
         except Exception as e:
             st.error(f"Terjadi error: {e}")
 
