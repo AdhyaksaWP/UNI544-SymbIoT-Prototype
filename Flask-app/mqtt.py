@@ -2,6 +2,7 @@ import os
 import re
 import requests
 import json
+from pymongo import MongoClient
 # import asyncio
 import paho.mqtt.client as mqtt
 
@@ -34,6 +35,10 @@ class MQTT():
             "X-Auth-Token": self.UBIDOTS_TOKEN,
             "Content-Type": "application/json"
         }
+        self.MONGO_URI = os.getenv("MONGODB_URL")
+        self.mongo_client = MongoClient(self.MONGO_URI)
+        self.db = self.mongo_client["sensor"]
+        self.collection = self.db["data_sensor"]
 
     def __on_connect(self, client, userdata, flags, rc):
         if rc == 0:
@@ -43,8 +48,6 @@ class MQTT():
             print(f"Failed to connect, return code {rc}")
 
     def __on_message(self, client, userdata, msg):
-        # print(f"Received message from {msg.topic}\nMessage: {msg.payload}")
-
         data = msg.payload.decode()
 
         data = re.sub(r'NaN', '0', data, flags=re.IGNORECASE)
@@ -55,8 +58,12 @@ class MQTT():
             # Send data to Ubidots asynchronously
             self.__send_to_ubidots(self.current_data)
 
+            # Insert data into MongoDB
+            self.collection.insert_one(self.current_data)
+            print("Data inserted into MongoDB.")
+
             # Publish to another topic if needed
-            if self.current_data["status"] == "1":
+            if self.current_data.get("status") == 1:
                 print("From MQTT client: Fire Detected!")
                 self.__publish()
 
@@ -88,3 +95,4 @@ class MQTT():
 
 # mqtt = MQTT()
 # mqtt.start()
+

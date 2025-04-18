@@ -7,13 +7,13 @@ from ultralytics import YOLO
 
 class Fire_Inference():
     def __init__(self):
-        self.__url = 'http://192.168.204.180/cam-hi.jpg'
+        self.__url = 'http://192.168.133.180/cam-hi.jpg'
         self.__width = 800
         self.__height = 600
         # self.__serial = serial.Serial('/dev/ttyUSB0', baudrate=115200)
-        self.__model = YOLO('../Output/yolo_model.pt')
+        self.__model = YOLO('../output/yolo_model.pt')
         self.__yaw_start_angle = 90 
-        self.__pitch_start_angle = 145
+        self.__pitch_start_angle = 150
         self.__cur_yaw = self.__yaw_start_angle
         self.__cur_pitch = self.__pitch_start_angle
 
